@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>عرض بيانات الطلاب</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap");
+
+      body {
+        font-family: "Tajawal", sans-serif;
+        background: linear-gradient(to bottom, #e0f2fe, #ffffff);
+        padding: 30px;
+        color: #1f2937;
+        overflow-x: hidden;
+      }
+
+      h1 {
+        text-align: center;
+        color: #0f172a;
+        margin-bottom: 10px;
+        font-size: 24px;
+        text-shadow: 1px 1px 2px #cbd5e1;
+      }
+
+      .file-container {
+        max-width: 600px;
+        margin: 0 auto 30px;
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        text-align: center;
+      }
+
+      .file-input-wrapper {
+        position: relative;
+        margin: 20px auto;
+        width: 80%;
+        overflow: hidden;
+      }
+
+      .file-input {
+        position: absolute;
+        font-size: 100px;
+        opacity: 0;
+        right: 0;
+        top: 0;
+        cursor: pointer;
+        height: 100%;
+        width: 100%;
+        z-index: 2;
+      }
+
+      .file-input-button {
+        display: block;
+        padding: 15px 30px;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        text-align: center;
+        margin: 0 auto;
+      }
+
+      .file-input-button:hover {
+        background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+        transform: translateY(-2px);
+      }
+
+      .file-input-label {
+        display: block;
+        margin: 10px 0;
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .template-btn {
+        display: inline-block;
+        margin: 10px auto;
+        padding: 10px 20px;
+        background: #f8fafc;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+      }
+
+      .template-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      h2 {
+        background: linear-gradient(to right, #2563eb, #1e3a8a);
+        color: white;
+        padding: 14px;
+        border-radius: 12px;
+        margin-top: 40px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        font-size: 24px;
+      }
+
+      .card-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 25px;
+        padding: 10px;
+      }
+
+      .card {
+        height: 100px;
+        background: #ffffff;
+        border: 2px solid #e2e8f0;
+        border-radius: 15px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        transition: transform 0.3s, box-shadow 0.3s;
+        min-width: 250px;
+      }
+
+      .card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      }
+
+      .card.gold {
+        width: 28%;
+        border-color: #ffcc00;
+        position: relative;
+        padding: 20px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        z-index: 1;
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+
+      .card.gold::before {
+        content: "🥇 ";
+        font-size: 60px;
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        bottom: -3px;
+        left: -3px;
+        background: linear-gradient(145deg, #ffd700, #fff8dc, #ffcc00);
+        border-radius: 18px;
+        z-index: -1;
+        filter: blur(3px);
+        opacity: 0.8;
+      }
+
+      .card.silver {
+        width: 28%;
+        font-size: 60px;
+        border-color: #7b7b7b;
+        position: relative;
+        padding: 20px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        z-index: 1;
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
+      }
+
+      .card.silver::before {
+        content: "🥈 ";
+        font-size: 60px;
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        bottom: -3px;
+        left: -3px;
+        background: linear-gradient(135deg, #c0c0c0, #e0e0e0, #f5f5f5);
+        border-radius: 18px;
+        z-index: -1;
+        filter: blur(3px);
+        opacity: 0.8;
+      }
+
+      .card.bronze {
+        width: 28%;
+        font-size: 60px;
+        border-color: #cd7f32;
+        position: relative;
+        padding: 20px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.07);
+        color: #fff;
+        z-index: 1;
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        box-shadow: 0 0 20px rgba(233, 150, 68, 0.149);
+      }
+
+      .card.bronze::before {
+        content: "🥉";
+        position: absolute;
+        top: -3px;
+        right: -3px;
+        bottom: -3px;
+        left: -3px;
+        background: linear-gradient(135deg, #cd7f32, #b87333, #deb887);
+        border-radius: 18px;
+        z-index: -1;
+        filter: blur(3px);
+        opacity: 0.85;
+      }
+
+      .rank {
+        font-size: 30px;
+        font-weight: bold;
+        color: #ff0000;
+        text-shadow: #f5f116 1px 1px 2px;
+      }
+
+      .name {
+        font-size: 20px;
+        margin-top: 8px;
+        font-weight: bold;
+        color: #111827;
+      }
+
+      .score {
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 10px;
+        color: #374151;
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        position: fixed;
+        top: 50%;
+        right: 20px;
+        transform: translateY(-50%);
+        z-index: 100;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: opacity 0.5s ease;
+      }
+
+      .btn {
+        padding: 10px 15px;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Tajawal", sans-serif;
+        font-size: 16px;
+        transition: background 0.3s;
+        width: 160px;
+        text-align: center;
+      }
+
+      .btn:hover {
+        background: #1d4ed8;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      @media (max-width: 768px) {
+        .card {
+          min-width: 200px;
+        }
+      }
+
+      #logo {
+        display: flex;
+        justify-content: center;
+        font-size: 30px;
+        text-shadow: #2563eb 1px 1px 2px;
+        margin-top: 30px;
+      }
+
+      /* قالب النموذج */
+      .template-modal,
+      .settings-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        overflow-y: auto;
+      }
+
+      .template-content,
+      .settings-content {
+        background-color: white;
+        max-width: 800px;
+        width: 90%;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .settings-form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-top: 25px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .form-group label {
+        font-weight: bold;
+        color: #334155;
+      }
+
+      .form-group input {
+        padding: 12px 15px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-family: "Tajawal", sans-serif;
+        font-size: 16px;
+        color: #334155;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      }
+
+      .settings-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .settings-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      .settings-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .save-settings-btn {
+        display: block;
+        margin: 30px auto 0;
+        padding: 12px 25px;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: "Tajawal", sans-serif;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .save-settings-btn:hover {
+        background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+        transform: translateY(-2px);
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        font-size: 24px;
+        cursor: pointer;
+        color: #64748b;
+        transition: color 0.3s;
+        background: none;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-btn:hover {
+        color: #ef4444;
+        background-color: #f1f5f9;
+      }
+
+      .template-title {
+        text-align: center;
+        color: #0f172a;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+
+      .template-section {
+        margin-bottom: 25px;
+        padding: 15px;
+        border-radius: 10px;
+        background-color: #f8fafc;
+        border-right: 5px solid #3b82f6;
+      }
+
+      .template-section h3 {
+        color: #1e40af;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .template-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 15px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .template-table th,
+      .template-table td {
+        padding: 10px 12px;
+        text-align: right;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .template-table thead {
+        background-color: #3b82f6;
+        color: white;
+      }
+
+      .template-table tbody tr:nth-child(even) {
+        background-color: #f1f5f9;
+      }
+
+      .download-template-btn {
+        display: block;
+        width: 250px;
+        margin: 20px auto;
+        padding: 12px 20px;
+        background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-family: "Tajawal", sans-serif;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .download-template-btn:hover {
+        background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+        transform: translateY(-3px);
+      }
+
+      .alert {
+        padding: 12px;
+        border-radius: 8px;
+        margin-top: 15px;
+        font-size: 14px;
+        text-align: center;
+        display: none;
+      }
+
+      .alert-success {
+        background-color: #ecfdf5;
+        color: #047857;
+        border: 1px solid #10b981;
+        display: block;
+      }
+
+      .alert-error {
+        background-color: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #ef4444;
+        display: block;
+      }
+
+      .reset-btn {
+        display: inline-block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background: #f1f5f9;
+        color: #475569;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+      }
+
+      .reset-btn:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+      }
+
+      .file-help {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 15px;
+      }
+
+      .file-help svg {
+        width: 18px;
+        height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>رصيد النقاط</h1>
+
+    <div class="file-container">
+      <div class="file-input-wrapper">
+        <button class="file-input-button">استيراد ملف الإكسل</button>
+        <input type="file" id="excelFile" accept=".xlsx" class="file-input" />
+      </div>
+      <div class="file-input-label">قم باختيار ملف إكسل بصيغة (.xlsx)</div>
+      <div class="file-help">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        <span>لا تملك الملف؟</span>
+        <a href="#" id="showTemplateBtn" class="template-btn"
+          >عرض القالب النموذجي</a
+        >
+      </div>
+      <div id="fileAlert" class="alert"></div>
+    </div>
+
+    <div id="controls" class="controls hidden">
+      <button id="prevBtn" class="btn">السابق</button>
+      <button id="nextBtn" class="btn">التالي</button>
+      <button id="autoBtn" class="btn">إيقاف العرض التلقائي</button>
+    </div>
+
+    <div id="output"></div>
+    <div id="logo">" هنا يتلى القرآن .. و ينسج المجد حرفاً حرفاً "</div>
+
+    <button id="resetBtn" class="reset-btn hidden">تحميل ملف جديد</button>
+
+    <!-- تغيير - جعل زر التخصيص مخفي بشكل افتراضي -->
+    <button id="settingsBtn" class="settings-btn hidden">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+        />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+      </svg>
+      تخصيص
+    </button>
+
+    <!-- قالب النموذج -->
+    <div id="templateModal" class="template-modal">
+      <div class="template-content">
+        <button class="close-btn" id="closeTemplateBtn">×</button>
+        <h2 class="template-title">قالب ملف رصيد النقاط</h2>
+
+        <div class="template-section">
+          <h3>
+            <span
+              style="
+                display: inline-block;
+                width: 25px;
+                height: 25px;
+                background-color: #3b82f6;
+                color: white;
+                border-radius: 50%;
+                text-align: center;
+                margin-left: 8px;
+              "
+              >1</span
+            >
+            تنسيق الملف
+          </h3>
+          <p>يجب أن يحتوي ملف الإكسل على الأعمدة التالية بالضبط:</p>
+          <table class="template-table">
+            <thead>
+              <tr>
+                <th id="groupColumnHeader">الحلقة</th>
+                <th>اسم الطالب</th>
+                <th>اجمالي الرصيد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="groupColumnExample">الحلقة 1</td>
+                <td>محمد أحمد علي</td>
+                <td>85</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="template-section">
+          <h3>
+            <span
+              style="
+                display: inline-block;
+                width: 25px;
+                height: 25px;
+                background-color: #3b82f6;
+                color: white;
+                border-radius: 50%;
+                text-align: center;
+                margin-left: 8px;
+              "
+              >2</span
+            >
+            مثال على البيانات
+          </h3>
+          <p>فيما يلي مثال على كيفية تنظيم البيانات في ملف الإكسل:</p>
+          <table class="template-table">
+            <thead>
+              <tr>
+                <th id="groupColumnHeader2">الحلقة</th>
+                <th>اسم الطالب</th>
+                <th>اجمالي الرصيد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="groupColumnExample2">الحلقة 1</td>
+                <td>خالد محمد</td>
+                <td>95</td>
+              </tr>
+              <tr>
+                <td id="groupColumnExample3">الحلقة 1</td>
+                <td>علي أحمد</td>
+                <td>85</td>
+              </tr>
+              <tr>
+                <td id="groupColumnExample4">الحلقة 2</td>
+                <td>محمد علي</td>
+                <td>91</td>
+              </tr>
+            </tbody>
+          </table>
+          <p style="color: #64748b; font-size: 14px">
+            ملاحظة: تأكد من كتابة أسماء الأعمدة بالضبط كما هو موضح أعلاه.
+          </p>
+        </div>
+
+        <button id="downloadTemplateBtn" class="download-template-btn">
+          تنزيل ملف القالب
+        </button>
+      </div>
+    </div>
+
+    <!-- نافذة الإعدادات -->
+    <div id="settingsModal" class="settings-modal">
+      <div class="settings-content">
+        <button class="close-btn" id="closeSettingsBtn">×</button>
+        <h2 class="template-title">إعدادات التخصيص</h2>
+
+        <div class="settings-form">
+          <div class="form-group">
+            <label for="groupNameInput">استبدال كلمة "الحلقة" بـ:</label>
+            <input
+              type="text"
+              id="groupNameInput"
+              placeholder="مثال: المجموعة، الفصل، الدفعة..."
+              value="الحلقة"
+            />
+            <small style="color: #64748b"
+              >سيتم استخدام هذا المسمى في كل مكان يظهر فيه "الحلقة"</small
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="mottoInput">العبارة الإيقونية:</label>
+            <input
+              type="text"
+              id="mottoInput"
+              placeholder="شعار أو عبارة الموقع..."
+              value="هنا يتلى القرآن .. و ينسج المجد حرفاً حرفاً"
+            />
+            <small style="color: #64748b">هذه العبارة ستظهر أسفل الصفحة</small>
+          </div>
+        </div>
+
+        <button id="saveSettingsBtn" class="save-settings-btn">
+          حفظ الإعدادات
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // العناصر الرئيسية
+      const fileInput = document.getElementById("excelFile");
+      const outputDiv = document.getElementById("output");
+      const controlsDiv = document.getElementById("controls");
+      const prevBtn = document.getElementById("prevBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const autoBtn = document.getElementById("autoBtn");
+      const fileAlert = document.getElementById("fileAlert");
+      const showTemplateBtn = document.getElementById("showTemplateBtn");
+      const templateModal = document.getElementById("templateModal");
+      const closeTemplateBtn = document.getElementById("closeTemplateBtn");
+      const downloadTemplateBtn = document.getElementById(
+        "downloadTemplateBtn"
+      );
+      const resetBtn = document.getElementById("resetBtn");
+      const logoDiv = document.getElementById("logo");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const settingsModal = document.getElementById("settingsModal");
+      const closeSettingsBtn = document.getElementById("closeSettingsBtn");
+      const groupNameInput = document.getElementById("groupNameInput");
+      const mottoInput = document.getElementById("mottoInput");
+      const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+
+      // عناصر عرض اسم المجموعة في القالب
+      const groupColumnHeaders = document.querySelectorAll(
+        '[id^="groupColumnHeader"]'
+      );
+      const groupColumnExamples = document.querySelectorAll(
+        '[id^="groupColumnExample"]'
+      );
+
+      // المتغيرات العامة
+      let groups = {};
+      let episodes = [];
+      let currentIndex = 0;
+      let intervalId = null;
+      let autoPlay = true;
+      let mouseTimer = null;
+      let groupColumnName = "الحلقة"; // اسم عمود المجموعات الافتراضي
+      let motto = "هنا يتلى القرآن .. و ينسج المجد حرفاً حرفاً"; // العبارة الإيقونية الافتراضية
+
+      // مسح البيانات عند تحميل الصفحة
+      clearLocalStorage();
+
+      // استماع لحدث تغيير الملف
+      fileInput.addEventListener("change", handleFile);
+      prevBtn.addEventListener("click", showPrevious);
+      nextBtn.addEventListener("click", showNext);
+      autoBtn.addEventListener("click", toggleAuto);
+      showTemplateBtn.addEventListener("click", showTemplate);
+      closeTemplateBtn.addEventListener("click", closeTemplate);
+      downloadTemplateBtn.addEventListener("click", downloadTemplate);
+      resetBtn.addEventListener("click", resetApplication);
+      settingsBtn.addEventListener("click", showSettings);
+      closeSettingsBtn.addEventListener("click", closeSettings);
+      saveSettingsBtn.addEventListener("click", saveSettings);
+
+      // إضافة مراقبي حركة الفأرة
+      document.addEventListener("mousemove", handleMouseMove);
+
+      // دالة مسح البيانات من التخزين المحلي
+      function clearLocalStorage() {
+        // مسح إعدادات التخصيص من التخزين المحلي
+        localStorage.removeItem("studentScoreSettings");
+        console.log("تم مسح البيانات من التخزين المحلي");
+      }
+
+      // دالة معالجة حركة الفأرة
+      function handleMouseMove() {
+        // إظهار أزرار التحكم عند تحريك الفأرة
+        controlsDiv.classList.remove("fade-out");
+
+        // إلغاء المؤقت السابق إن وجد
+        if (mouseTimer) {
+          clearTimeout(mouseTimer);
+        }
+
+        // تعيين مؤقت جديد لإخفاء الأزرار بعد 3 ثوانٍ
+        mouseTimer = setTimeout(() => {
+          if (!controlsDiv.classList.contains("hidden")) {
+            controlsDiv.classList.add("fade-out");
+          }
+        }, 3000);
+      }
+
+      // دالة معالجة الملف
+      function handleFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+            // التحقق من وجود الأعمدة المطلوبة
+            if (jsonData.length > 0) {
+              const firstRow = jsonData[0];
+              if (
+                !firstRow[groupColumnName] ||
+                !firstRow["اسم الطالب"] ||
+                firstRow["اجمالي الرصيد"] === undefined
+              ) {
+                showAlert(
+                  `خطأ: تأكد من أن الملف يحتوي على الأعمدة المطلوبة (${groupColumnName}، اسم الطالب، اجمالي الرصيد)`,
+                  "error"
+                );
+                return;
+              }
+            } else {
+              showAlert("خطأ: الملف لا يحتوي على بيانات", "error");
+              return;
+            }
+
+            // تجميع البيانات حسب المجموعة (الحلقة)
+            groups = {};
+            jsonData.forEach((row) => {
+              const group = row[groupColumnName] || "غير محدد";
+              if (!groups[group]) groups[group] = [];
+              groups[group].push(row);
+            });
+
+            // ترتيب المفاتيح
+            episodes = Object.keys(groups).sort((a, b) =>
+              a.localeCompare(b, "ar")
+            );
+            currentIndex = 0;
+
+            // إخفاء خانة استيراد الملف
+            document.querySelector(".file-container").classList.add("hidden");
+
+            // إظهار أزرار التحكم
+            controlsDiv.classList.remove("hidden");
+            resetBtn.classList.remove("hidden");
+
+            // تغيير - إظهار زر التخصيص بعد الاستيراد
+            settingsBtn.classList.remove("hidden");
+
+            // تفعيل مؤقت إخفاء الأزرار
+            handleMouseMove();
+
+            // عرض المجموعة الأولى
+            showCurrentGroup();
+
+            // بدء العرض التلقائي
+            startAutoPlay();
+
+            // إظهار رسالة نجاح
+            showAlert("تم استيراد الملف بنجاح", "success");
+          } catch (error) {
+            showAlert("حدث خطأ في قراءة الملف: " + error.message, "error");
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      // دالة عرض المجموعة الحالية
+      function showCurrentGroup() {
+        if (episodes.length === 0) return;
+
+        const episode = episodes[currentIndex];
+        const students = groups[episode];
+
+        // ترتيب الطلاب حسب الرصيد
+        students.sort(
+          (a, b) => (b["اجمالي الرصيد"] || 0) - (a["اجمالي الرصيد"] || 0)
+        );
+
+        // إنشاء العناصر
+        outputDiv.innerHTML = "";
+
+        const title = document.createElement("h2");
+        title.innerHTML = `${groupColumnName}: ${episode}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(عدد الطلاب: ${students.length})`;
+        outputDiv.appendChild(title);
+
+        const container = document.createElement("div");
+        container.className = "card-container";
+
+        // متغيرات لتتبع الترتيب
+        let currentRank = 1; // المركز الحالي
+        let previousScore = null;
+        let sameRankCount = 0; // عدد الطلاب في نفس المركز
+
+        students.forEach((student, index) => {
+          const currentScore = student["اجمالي الرصيد"] || 0;
+
+          // تحديد الترتيب
+          if (index === 0) {
+            // أول طالب دائماً في المركز الأول
+            currentRank = 1;
+            sameRankCount = 0;
+          } else if (currentScore === previousScore) {
+            // نفس رصيد الطالب السابق، نستخدم نفس المركز
+            sameRankCount++;
+          } else {
+            // رصيد مختلف، ننتقل للمركز التالي (بغض النظر عن عدد المتساوين)
+            currentRank = index + 1 - sameRankCount;
+          }
+
+          previousScore = currentScore;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          // إضافة فئة حسب المركز
+          if (currentRank === 1) card.classList.add("gold");
+          else if (currentRank === 2) card.classList.add("silver");
+          else if (currentRank === 3) card.classList.add("bronze");
+
+          const rank = document.createElement("div");
+          rank.className = "rank";
+          rank.textContent = ` 🏅    ${currentRank}   🏅`;
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = student["اسم الطالب"] || "-";
+
+          const score = document.createElement("div");
+          score.className = "score";
+          score.textContent = `الرصيد: ${currentScore}`;
+
+          card.appendChild(rank);
+          card.appendChild(name);
+          card.appendChild(score);
+          container.appendChild(card);
+        });
+
+        outputDiv.appendChild(container);
+      }
+
+      // دالة عرض المجموعة التالية
+      function showNext() {
+        if (episodes.length === 0) return;
+
+        currentIndex = (currentIndex + 1) % episodes.length;
+        showCurrentGroup();
+      }
+
+      // دالة عرض المجموعة السابقة
+      function showPrevious() {
+        if (episodes.length === 0) return;
+
+        currentIndex = (currentIndex - 1 + episodes.length) % episodes.length;
+        showCurrentGroup();
+      }
+
+      // دالة بدء العرض التلقائي
+      function startAutoPlay() {
+        // إيقاف أي فاصل زمني سابق
+        if (intervalId) clearInterval(intervalId);
+
+        // بدء فاصل زمني جديد
+        intervalId = setInterval(() => {
+          if (autoPlay) showNext();
+        }, 20000);
+      }
+
+      // دالة تبديل حالة العرض التلقائي
+      function toggleAuto() {
+        autoPlay = !autoPlay;
+        autoBtn.textContent = autoPlay
+          ? "إيقاف العرض التلقائي"
+          : "تشغيل العرض التلقائي";
+      }
+
+      // دالة عرض قالب الملف
+      function showTemplate(e) {
+        e.preventDefault();
+        templateModal.style.display = "block";
+      }
+
+      // دالة إغلاق قالب الملف
+      function closeTemplate() {
+        templateModal.style.display = "none";
+      }
+
+      // دالة عرض إعدادات التخصيص
+      function showSettings(e) {
+        e.preventDefault();
+
+        // تعبئة القيم الحالية
+        groupNameInput.value = groupColumnName;
+        mottoInput.value = motto;
+
+        settingsModal.style.display = "block";
+      }
+
+      // دالة إغلاق إعدادات التخصيص
+      function closeSettings() {
+        settingsModal.style.display = "none";
+      }
+
+      // دالة حفظ إعدادات التخصيص
+      function saveSettings() {
+        // الحصول على القيم الجديدة
+        const newGroupName = groupNameInput.value.trim() || "الحلقة";
+        const newMotto =
+          mottoInput.value.trim() ||
+          "هنا يتلى القرآن .. و ينسج المجد حرفاً حرفاً";
+
+        // تحديث المتغيرات
+        groupColumnName = newGroupName;
+        motto = newMotto;
+
+        // تحديث العبارة الإيقونية
+        logoDiv.textContent = `" ${motto} "`;
+
+        // تحديث أسماء الأعمدة في القالب
+        groupColumnHeaders.forEach((header) => {
+          header.textContent = groupColumnName;
+        });
+
+        // تحديث أمثلة الأعمدة
+        const baseExample = groupColumnName + " ";
+        groupColumnExamples.forEach((example, index) => {
+          const num = Math.floor(index / 2) + 1;
+          example.textContent = baseExample + num;
+        });
+
+        // حفظ الإعدادات في التخزين المحلي
+        localStorage.setItem(
+          "studentScoreSettings",
+          JSON.stringify({
+            groupColumnName,
+            motto,
+          })
+        );
+
+        // إغلاق النافذة وعرض تنبيه
+        closeSettings();
+        showAlert("تم حفظ الإعدادات بنجاح", "success");
+
+        // إذا كان هناك بيانات معروضة، تحديثها
+        if (episodes.length > 0) {
+          showCurrentGroup();
+        }
+      }
+
+      // دالة تنزيل قالب الملف
+      function downloadTemplate() {
+        // إنشاء مصفوفة البيانات النموذجية
+        const templateData = [
+          [groupColumnName, "اسم الطالب", "اجمالي الرصيد"],
+          [groupColumnName + " 1", "خالد محمد", 95],
+          [groupColumnName + " 1", "علي أحمد", 85],
+          [groupColumnName + " 1", "عبدالله سعيد", 92],
+          [groupColumnName + " 2", "سعد خالد", 87],
+          [groupColumnName + " 2", "محمد علي", 91],
+          [groupColumnName + " 3", "فهد ناصر", 88],
+          [groupColumnName + " 3", "عمر عبدالله", 94],
+        ];
+
+        // إنشاء ورقة عمل
+        const worksheet = XLSX.utils.aoa_to_sheet(templateData);
+
+        // إنشاء مصنف عمل
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "رصيد النقاط");
+
+        // تنزيل الملف
+        XLSX.writeFile(workbook, `نموذج_رصيد_النقاط.xlsx`);
+      }
+
+      // دالة إعادة تعيين التطبيق
+      function resetApplication() {
+        // إيقاف العرض التلقائي
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+
+        // إعادة تعيين المتغيرات
+        groups = {};
+        episodes = [];
+        currentIndex = 0;
+        autoPlay = true;
+
+        // إعادة تعيين واجهة المستخدم
+        outputDiv.innerHTML = "";
+        fileAlert.className = "alert";
+        fileAlert.textContent = "";
+        fileInput.value = ""; // إعادة تعيين قيمة الملف
+
+        // إظهار خانة استيراد الملف
+        document.querySelector(".file-container").classList.remove("hidden");
+
+        // إخفاء أزرار التحكم وزر الإعادة
+        controlsDiv.classList.add("hidden");
+        resetBtn.classList.add("hidden");
+
+        // تغيير - إخفاء زر التخصيص عند إعادة التعيين
+        settingsBtn.classList.add("hidden");
+
+        // تحديث نص زر التشغيل التلقائي
+        autoBtn.textContent = "إيقاف العرض التلقائي";
+      }
+
+      // دالة عرض رسائل التنبيه
+      function showAlert(message, type) {
+        fileAlert.textContent = message;
+        fileAlert.className = "alert";
+        fileAlert.classList.add("alert-" + type);
+
+        // إخفاء الرسالة بعد 5 ثوانٍ إذا كانت رسالة نجاح
+        if (type === "success") {
+          setTimeout(() => {
+            fileAlert.className = "alert";
+            fileAlert.textContent = "";
+          }, 5000);
+        }
+      }
+
+      // إغلاق نافذة القالب عند النقر خارجها
+      window.onclick = function (event) {
+        if (event.target === templateModal) {
+          closeTemplate();
+        }
+        if (event.target === settingsModal) {
+          closeSettings();
+        }
+      };
+
+      // تحسين تجربة المستخدم عند تحميل الصفحة
+      window.addEventListener("load", function () {
+        // التحقق من دعم API File
+        if (
+          window.File &&
+          window.FileReader &&
+          window.FileList &&
+          window.Blob
+        ) {
+          // الملفات مدعومة
+        } else {
+          showAlert(
+            "خطأ: متصفحك لا يدعم استيراد الملفات. يرجى استخدام متصفح حديث.",
+            "error"
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
